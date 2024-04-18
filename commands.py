@@ -135,10 +135,15 @@ def setup(bot):
         await member.send(message)
         await ctx.send("DMを送信しました")
 
-    @bot.command(description="イベントを作成します")
-    async def event(ctx, date: str, time: str, event_name: str, channel_id: int):
-        # FIXME ボイスチャンネルのチャンネルIDを動的に取得する方法がわからない
-
+    @bot.command(description="イベントを作成します YYYY-MM-DD HH:MM イベント名 ?VC名")
+    async def event(ctx, date: str, time: str, event_name: str, channel_name: str = None):
+        if ctx.author.voice is None and channel_name is not None:
+            channel_id = discord.utils.get(ctx.guild.voice_channels, name=channel_name).id
+        elif ctx.author.voice is not None:
+            channel_id = ctx.author.voice.channel.id
+        else:
+            await ctx.send("ボイスチャンネル名を指定するか、ボイスチャンネルに参加してください。")
+            return
         date_time = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M").astimezone()
         channel = ctx.guild.get_channel(channel_id)
         print(date_time, channel)
