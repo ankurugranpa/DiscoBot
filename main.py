@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -9,7 +10,7 @@ TOKEN = os.getenv('TOKEN')
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='/', intents=intents ,help_command=None)
+bot = commands.Bot(command_prefix='!', intents=intents ,help_command=None)
 
 class Button(discord.ui.View):
     def __init__(self):
@@ -22,10 +23,15 @@ class Button(discord.ui.View):
         user = interaction.user
         await interaction.response.send_message(f"{user}さんがボタンを押しました", silent=True)
 
+# commands.pyからコマンドを読み込む
+from commands import setup
+setup(bot)
+
 @bot.event
 async def on_ready():
-    bot.tree.clear_commands(guild=None)
-    await bot.tree.sync(guild=None)
+    print(f'Bot Name: {bot.user}')
+    for server in bot.guilds:
+        await bot.tree.sync(guild=discord.Object(id=server.id))
 
 @bot.event
 async def on_message(message):
@@ -38,8 +44,6 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# commands.pyからコマンドを読み込む
-from commands import setup
-setup(bot)
+
 
 bot.run(TOKEN)
