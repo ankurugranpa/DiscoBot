@@ -7,7 +7,7 @@ from gtts import gTTS ,lang
 import os
 
 def setup(bot):
-    
+
     bot.remove_command('help')
 
     @bot.command(description="pingを返します")
@@ -28,8 +28,8 @@ def setup(bot):
     @bot.command(description="ボタンを表示します")
     async def button(ctx):
         button = Button()
-        await ctx.send('', view=button ,silent=True)  
-    
+        await ctx.send('', view=button ,silent=True)
+
     @bot.command(description="セレクトメニューを表示します")
     async def select(ctx):
         select = Select()
@@ -52,7 +52,7 @@ def setup(bot):
             await ctx.send("ボイスチャンネルに参加していません。")
         else:
             await ctx.voice_client.disconnect()
-    
+
     @bot.command(description="ttsで突然しゃべります")
     async def tts(ctx, *, message):
         await ctx.send(message, tts=True)
@@ -61,7 +61,7 @@ def setup(bot):
     async def mute(ctx, member: discord.Member):
         await member.edit(mute=True)
         await ctx.send(f"{member.mention}をミュートしました")
-    
+
     @bot.command(description="指定したユーザーのミュートを解除します")
     async def unmute(ctx, member: discord.Member):
         await member.edit(mute=False)
@@ -103,7 +103,6 @@ def setup(bot):
 
         if not was_connected:
             await ctx.voice_client.disconnect()  # ボットが元々接続されていなかった場合、切断します
-
     
     @bot.command(description="VC対応言語の一覧を表示します")
     async def langlist(ctx):
@@ -130,10 +129,24 @@ def setup(bot):
             await ctx.send("選択肢の数は整数で指定してください😡")
         except Exception as e:
             await ctx.send(e)
-    
+
     @bot.command(description="指定したユーザーにDMを送信します")
     async def dm(ctx, member: discord.Member, *, message):
         await member.send(message)
         await ctx.send("DMを送信しました")
+
+    @bot.command(description="イベントを作成します")
+    async def event(ctx, date: str, time: str, event_name: str, channel_id: int):
+        # FIXME ボイスチャンネルのチャンネルIDを動的に取得する方法がわからない
+
+        date_time = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M").astimezone()
+        channel = ctx.guild.get_channel(channel_id)
+        print(date_time, channel)
+        try:
+            await ctx.guild.create_scheduled_event(name=event_name,description="Botにより作成",start_time=date_time,entity_type=discord.EntityType.voice,channel=channel,privacy_level=discord.PrivacyLevel.guild_only)
+            await ctx.send("イベントを作成しました")
+
+        except Exception as e:
+            await ctx.send(e)
 
 
