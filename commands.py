@@ -107,3 +107,15 @@ def setup(bot):
     async def langlist(ctx):
         with open('languagelist.txt', 'rb') as file:
             await ctx.send("対応言語一覧\nSupported Languages", file=discord.File(file, 'languagelist.txt'))
+
+    @bot.command(description="指定したメッセージに指定したリアクションをつけます")
+    async def react(ctx, message_id: int, reaction: str):
+        message = await ctx.fetch_message(message_id)
+        await message.add_reaction(reaction)
+
+    # !vote 5 と入力すると、5種類のリアクションがついたメッセージが生成されます
+    @bot.command(description="N個の選択肢がある投票を作成します ex)!vote 5")
+    async def vote(ctx, num: int):
+        message = await ctx.send("投票")
+        for i in range(1, num + 1):
+            await message.add_reaction(f"{i}\u20e3")
