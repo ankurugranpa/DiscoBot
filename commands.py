@@ -1,6 +1,7 @@
 from discord.ext import commands
 from discord import app_commands
 import discord
+from ui import *
 
 def setup(bot):
     
@@ -20,3 +21,13 @@ def setup(bot):
         help_message += "```"
         embed = discord.Embed(title="コマンド一覧(アルファベット順)" ,color=0x00ff00 ,description=help_message)
         await ctx.send(embed=embed)
+
+    @bot.command(description="ボタンを表示します")
+    async def button(ctx):
+        button = Button()
+        await ctx.send('ボタンを表示します', view=button)
+    
+    @bot.command(description="セレクトメニューを表示します")
+    async def select(ctx):
+        select = Select()
+        await ctx.send('セレクトメニューを表示します', view=select)
