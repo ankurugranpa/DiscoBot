@@ -1,7 +1,9 @@
 import discord
 from discord.ext import commands
-from gtts import gTTS ,lang
+from datetime import datetime, timedelta
 import asyncio
+from dateutil.parser import parse
+from gtts import gTTS ,lang
 import os
 
 def setup(bot):
@@ -114,8 +116,25 @@ def setup(bot):
         await message.add_reaction(reaction)
 
     # !vote 5 と入力すると、5種類のリアクションがついたメッセージが生成されます
-    @bot.command(description="N個の選択肢がある投票を作成します ex)!vote 5")
-    async def vote(ctx, num: int):
-        message = await ctx.send("投票")
-        for i in range(1, num + 1):
-            await message.add_reaction(f"{i}\u20e3")
+    @bot.command(description="N個の選択肢がある投票を作成します !vote N")
+    async def vote(ctx, num: str):
+        try:
+            num = int(num)
+            if num < 2 or num > 10:
+                await ctx.send("選択肢は2〜10個までです😡")
+                return
+            message = await ctx.send("投票")
+            for i in range(1, num + 1):
+                await message.add_reaction(f"{i}\u20e3")
+        except ValueError:
+            await ctx.send("選択肢の数は整数で指定してください😡")
+        except Exception as e:
+            await ctx.send(e)
+    
+    @bot.command(description="指定したユーザーにDMを送信します")
+    async def dm(ctx, member: discord.Member, *, message):
+        await member.send(message)
+        await ctx.send("DMを送信しました")
+
+
+            
