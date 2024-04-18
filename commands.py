@@ -105,7 +105,7 @@ def setup(bot):
             await ctx.voice_client.disconnect()  # ボットが元々接続されていなかった場合、切断します
 
     
-    @bot.command(description="対応言語の一覧を表示します")
+    @bot.command(description="VC対応言語の一覧を表示します")
     async def langlist(ctx):
         with open('languagelist.txt', 'rb') as file:
             await ctx.send("対応言語一覧\nSupported Languages", file=discord.File(file, 'languagelist.txt'))
@@ -137,4 +137,3 @@ def setup(bot):
         await ctx.send("DMを送信しました")
 
 
-            
