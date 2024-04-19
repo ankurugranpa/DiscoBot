@@ -2,8 +2,7 @@
 
 Discord.py を使った DiscordBot
 
-![Python](https://img.shields.io/badge/Python-3.8.5-blue)  
-![Discord.py](https://img.shields.io/badge/Discord.py-1.5.1-blue)
+![Discord.py](https://img.shields.io/badge/Discord.py-2.3.2-blue)
 
 ## 使い方
 
@@ -17,4 +16,4 @@ npm install -g nodemon
 
 nodemon --exec python3 main.py
 
--> Happy
+-> **_Happy_**
