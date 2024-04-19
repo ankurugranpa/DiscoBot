@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 import asyncio
 from dateutil.parser import parse
 from gtts import gTTS ,lang
-import os
+import os 
+from ui import ConfirmButton
 
 def setup(bot):
 
@@ -148,6 +149,13 @@ def setup(bot):
     
     @bot.command(description="指定したイベントをキャンセルします")
     async def cancel(ctx, event):
+        await ctx.reply("イベントをキャンセルしますか？", mention_author=False)
+        button = ConfirmButton()
+        await button.prompt(ctx)
+        print(button.value)
+        if button.value == "NO":
+            await ctx.reply("キャンセルしました", mention_author=False)
+            return
         try :
             event = discord.utils.get(ctx.guild.scheduled_events, name=event)
             await event.delete()
