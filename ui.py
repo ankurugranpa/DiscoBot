@@ -25,22 +25,28 @@ class Select(discord.ui.View):
         user = interaction.user.mention
         await interaction.response.send_message(f"{user}さんが{interaction.data['values'][0]}を選択しました", silent=True)
 
-class ConfirmButton(discord.ui.View): #YESボタンはYESをreturn, NOボタンはNOをreturn
+class ConfirmButton(discord.ui.View):
     def __init__(self):
         super().__init__()
         self.value = None
-        self.add_item(discord.ui.Button(label='YES', style=discord.ButtonStyle.success, custom_id='yes'))
-        self.add_item(discord.ui.Button(label='NO', style=discord.ButtonStyle.danger, custom_id='no'))
 
-    async def interaction_check(self, interaction):
-        return interaction.user == self.message.author
+        self.yes_button = discord.ui.Button(label='YES', style=discord.ButtonStyle.success, custom_id='yes')
+        self.yes_button.callback = self.on_button_press  
+        self.add_item(self.yes_button)
+
+        self.no_button = discord.ui.Button(label='NO', style=discord.ButtonStyle.danger, custom_id='no')
+        self.no_button.callback = self.on_button_press  
+        self.add_item(self.no_button)
 
     async def on_button_press(self, interaction):
-        self.value = interaction.component.label
+        if interaction.data['custom_id'] == 'yes':
+            self.value = 'YES'
+        elif interaction.data['custom_id'] == 'no':
+            self.value = 'NO'
+        await interaction.message.delete()
         self.stop()
 
+    # FIXME ねむい 全部おかしい なおす
     async def prompt(self, message):
         self.message = message
-        await message.send('', view=self)
-        await self.wait()
-        return self.value
+        return await message.send('', view=self), self

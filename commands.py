@@ -148,17 +148,21 @@ def setup(bot):
             await ctx.reply(f"**エラーが発生しました**\n引数が間違っている可能性があります｡\n2024-04-01 12:00 会議 のように指定してください｡", mention_author=False)
     
     @bot.command(description="指定したイベントをキャンセルします")
-    async def cancel(ctx, event):
-        await ctx.reply("イベントをキャンセルしますか？", mention_author=False)
-        button = ConfirmButton()
-        await button.prompt(ctx)
-        print(button.value)
-        if button.value == "NO":
-            await ctx.reply("キャンセルしました", mention_author=False)
-            return
+    # FIXME ねむい 全部おかしい なおす
+    async def cancel(ctx, event ):
         try :
             event = discord.utils.get(ctx.guild.scheduled_events, name=event)
-            await event.delete()
-            await ctx.reply("イベントをキャンセルしました", mention_author=False)
-        except :
-            await ctx.reply("指定したイベントが見つかりません", mention_author=False)
+            button = ConfirmButton()
+            await ctx.send("イベントをキャンセルしますか？")
+            await button.prompt(ctx)
+            if button.value == "NO":
+                return
+            else:
+                await event.delete()
+                await ctx.send("イベントをキャンセルしました")
+                return
+        except Exception as e:
+            await ctx.send("イベントが見つかりませんでした")
+            return
+
+        
