@@ -6,6 +6,7 @@ from dateutil.parser import parse
 from gtts import gTTS ,lang
 import os 
 from ui import ConfirmButton
+import time
 
 def setup(bot):
 
@@ -165,4 +166,21 @@ def setup(bot):
             await ctx.send("イベントが見つかりませんでした")
             return
 
-        
+    @bot.command(description="指定したチャンネルのメッセージをすべて取得し、txtファイルとして保存、送信します。")
+    async def getlog(ctx, channel_name: str):
+        channel = discord.utils.get(ctx.guild.channels, name=channel_name)
+        if channel is None:
+            await ctx.send(f'チャンネル {channel_name} が見つかりません。')
+            return
+
+        start_time = time.time()
+
+        try:
+            with open(f'{channel_name}_log.txt', 'w', encoding='utf-8') as file:
+                async for message in channel.history(limit=None):
+                    file.write(f'{message.created_at} - {message.author.display_name}: {message.content}\n')
+            execution_time = time.time() - start_time
+            await ctx.send(f'チャンネル {channel_name} のメッセージログを {channel_name}_log.txt に保存しました。処理時間：{execution_time:.2f}秒', file=discord.File(f'{channel_name}_log.txt'))
+            os.remove(f'{channel_name}_log.txt')
+        except Exception as e:
+            await ctx.send(f'エラーが発生しました: {str(e)}')
