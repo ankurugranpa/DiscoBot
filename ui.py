@@ -25,28 +25,30 @@ class Select(discord.ui.View):
         user = interaction.user.mention
         await interaction.response.send_message(f"{user}さんが{interaction.data['values'][0]}を選択しました", silent=True)
 
+
 class ConfirmButton(discord.ui.View):
     def __init__(self):
         super().__init__()
-        self.value = None
+        self.value = None  
+        
+        yes_button = discord.ui.Button(
+            label="YES", style=discord.ButtonStyle.success, custom_id="yes"
+        )
+        yes_button.callback = self.yes
+        self.add_item(yes_button)
 
-        self.yes_button = discord.ui.Button(label='YES', style=discord.ButtonStyle.success, custom_id='yes')
-        self.yes_button.callback = self.on_button_press  
-        self.add_item(self.yes_button)
+        no_button = discord.ui.Button(
+            label="NO", style=discord.ButtonStyle.danger, custom_id="no"
+        )
+        no_button.callback = self.no
+        self.add_item(no_button)
 
-        self.no_button = discord.ui.Button(label='NO', style=discord.ButtonStyle.danger, custom_id='no')
-        self.no_button.callback = self.on_button_press  
-        self.add_item(self.no_button)
-
-    async def on_button_press(self, interaction):
-        if interaction.data['custom_id'] == 'yes':
-            self.value = 'YES'
-        elif interaction.data['custom_id'] == 'no':
-            self.value = 'NO'
-        await interaction.message.delete()
+    async def yes(self, interaction):
+        self.value = "YES"
+        await interaction.response.defer()  #
         self.stop()
 
-    # FIXME ねむい 全部おかしい なおす
-    async def prompt(self, message):
-        self.message = message
-        return await message.send('', view=self), self
+    async def no(self, interaction):
+        self.value = "NO"
+        await interaction.response.defer()  
+        self.stop()

@@ -95,7 +95,7 @@ def setup(bot):
 
         if not was_connected:
             await ctx.voice_client.disconnect()  # ボットが元々接続されていなかった場合、切断します
-    
+
     @bot.command(description="VC対応言語の一覧を表示します")
     async def langlist(ctx):
         with open('languagelist.txt', 'rb') as file:
@@ -144,33 +144,38 @@ def setup(bot):
             channel = ctx.guild.get_channel(channel_id)
             await ctx.guild.create_scheduled_event(name=event_name, description="Botにより作成", start_time=date_time, entity_type=discord.EntityType.voice, channel=channel, privacy_level=discord.PrivacyLevel.guild_only)
             await ctx.reply("イベントを作成しました", mention_author=False)
+            # Googleカレンダーに登録できるURLを生成
+            await ctx.send(f"Googleカレンダーに登録する場合は[こちら](https://calendar.google.com/calendar/u/0/r/eventedit?dates={date_time.strftime('%Y%m%dT%H%M%S')}/{(date_time + timedelta(hours=1)).strftime('%Y%m%dT%H%M%S')}&details=Botにより作成&location=Discord：「{ctx.guild.name}」サーバー&text={event_name})")
 
         except Exception as e:
             await ctx.reply(f"**エラーが発生しました**\n引数が間違っている可能性があります｡\n2024-04-01 12:00 会議 のように指定してください｡", mention_author=False)
-    
+            print(e)
+
+
     @bot.command(description="指定したイベントをキャンセルします")
-    # FIXME ねむい 全部おかしい なおす
-    async def cancel(ctx, event ):
-        try :
-            event = discord.utils.get(ctx.guild.scheduled_events, name=event)
-            button = ConfirmButton()
-            await ctx.send("イベントをキャンセルしますか？")
-            await button.prompt(ctx)
-            if button.value == "NO":
-                return
-            else:
-                await event.delete()
-                await ctx.send("イベントをキャンセルしました")
-                return
-        except Exception as e:
-            await ctx.send("イベントが見つかりませんでした")
+    async def cancel(ctx, *, event_name):
+        event = discord.utils.get(ctx.guild.scheduled_events, name=event_name)
+        if event is None:
+            await ctx.send("指定されたイベントが見つかりませんでした。")
             return
+
+        confirm = ConfirmButton()
+        message = await ctx.send("このイベントをキャンセルしますか？", view=confirm)
+        await confirm.wait()  # ボタンの応答を待機
+
+        if confirm.value == "YES":
+            await event.delete()
+            await message.edit(content="イベントがキャンセルされました。", view=None)
+        elif confirm.value == "NO":
+            await message.delete()
+            await ctx.message.delete()
 
     @bot.command(description="指定したチャンネルのメッセージをすべて取得し、txtファイルとして保存、送信します。")
     async def getlog(ctx, channel_name: str):
         channel = discord.utils.get(ctx.guild.channels, name=channel_name)
+        channel_link = f"https://discord.com/channels/{ctx.guild.id}/{channel.id}"
         if channel is None:
-            await ctx.send(f'チャンネル {channel_name} が見つかりません。')
+            await ctx.reply(f'チャンネル {channel_name} が見つかりません。')
             return
 
         start_time = time.time()
@@ -180,7 +185,7 @@ def setup(bot):
                 async for message in channel.history(limit=None):
                     file.write(f'{message.created_at} - {message.author.display_name}: {message.content}\n')
             execution_time = time.time() - start_time
-            await ctx.send(f'チャンネル {channel_name} のメッセージログを {channel_name}_log.txt に保存しました。処理時間：{execution_time:.2f}秒', file=discord.File(f'{channel_name}_log.txt'))
+            await ctx.reply(f'{channel_link} のメッセージログを {channel_name}_log.txt に保存しました。処理時間：{execution_time:.2f}秒', file=discord.File(f'{channel_name}_log.txt'))
             os.remove(f'{channel_name}_log.txt')
         except Exception as e:
             await ctx.send(f'エラーが発生しました: {str(e)}')
