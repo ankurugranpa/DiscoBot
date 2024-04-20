@@ -1,13 +1,25 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from gtts import gTTS
+from gtts import gTTS, lang
 import os
 import asyncio
 from datetime import datetime, timedelta
 
 def setup(bot):
     tree = bot.tree
+
+    bot.remove_command("help")
+
+    @tree.command(name="help", description="コマンド一覧を表示します")
+    async def help(interaction: discord.Interaction):
+        help_message = "```"
+        for command in sorted(tree.get_commands(), key=lambda c: c.name):
+            help_message += f"/{command.name}: {command.description}\n\n"
+
+        help_message += "```"
+        embed = discord.Embed(title="コマンド一覧(アルファベット順)", color=0x00ff00, description=help_message)
+        await interaction.response.send_message(embed=embed)
 
     @tree.command(name="ping", description="pingを返します")
     async def ping(interaction: discord.Interaction):
@@ -49,21 +61,25 @@ def setup(bot):
     async def mute(interaction: discord.Interaction, member: discord.Member):
         await member.edit(mute=True)
         await interaction.response.send_message(
-            f"{member.display_name} をミュートしました"
+            f"{member.mention} をミュートしました"
         )
 
     @tree.command(name="unmute", description="指定したユーザーのミュートを解除します")
     @app_commands.describe(member="ミュートを解除するメンバー")
     async def unmute(interaction: discord.Interaction, member: discord.Member):
+        # memberを見やすくprint
         await member.edit(mute=False)
         await interaction.response.send_message(
-            f"{member.display_name} のミュートを解除しました"
+            f"{member.mention} のミュートを解除しました"
         )
 
     @tree.command(name="say", description="ボイスチャンネル内で言語に応じて喋ります")
     @app_commands.describe(lang_code="言語コード", message="話すメッセージ")
     async def say(interaction: discord.Interaction, lang_code: str, message: str):
-        supported_langs = gTTS.get_supported_languages()
+        # botがVCに参加しているか確認
+        was_connected = interaction.guild.voice_client is None
+        print("botがVCに参加しているか確認", was_connected)
+        supported_langs = lang.tts_langs()
         if lang_code not in supported_langs:
             await interaction.response.send_message("サポートされていない言語です。")
             return
@@ -88,7 +104,8 @@ def setup(bot):
         await asyncio.sleep(len(message) / 5)  # おおよその再生時間を計算
         os.remove(path)
 
-        await interaction.followup.send("メッセージを発声しました。")
+        if not was_connected:
+            await interaction.guild.voice_client.disconnect()
 
     @tree.command(name="langlist", description="VC対応言語の一覧を表示します")
     async def langlist(interaction: discord.Interaction):
@@ -112,12 +129,13 @@ def setup(bot):
     @tree.command(name="vote", description="N個の選択肢がある投票を作成します")
     @app_commands.describe(num="選択肢の数")
     async def vote(interaction: discord.Interaction, num: int):
-        if num < 2 or num > 10:
-            await interaction.response.send_message("選択肢は2〜10個までです😡")
-            return
-        message = await interaction.response.send_message("投票を作成しています...")
+        if num < 2 or num >= 10:
+            await interaction.response.send_message("選択肢は2〜10個までです😡", ephemeral=True)
+            return  
+        await interaction.response.defer()  
+        message = await interaction.followup.send("以下にリアクションをクリックして投票してください:")
         for i in range(1, num + 1):
-            await message.add_reaction(f"{i}\u20e3")
+            await message.add_reaction(f"{i}\u20e3")    
 
     @tree.command(name="dm", description="指定したユーザーにDMを送信します")
     @app_commands.describe(member="DMを送るメンバー", message="メッセージ内容")

@@ -1,4 +1,5 @@
 import discord
+from discord.ext  import commands
 
 class Button(discord.ui.View):
     def __init__(self,label,style):# Button(label='ボタン', style=discord.ButtonStyle.primary)
@@ -30,7 +31,7 @@ class ConfirmButton(discord.ui.View):
     def __init__(self):
         super().__init__()
         self.value = None  
-        
+
         yes_button = discord.ui.Button(
             label="YES", style=discord.ButtonStyle.success, custom_id="yes"
         )
@@ -45,10 +46,11 @@ class ConfirmButton(discord.ui.View):
 
     async def yes(self, interaction):
         self.value = "YES"
-        await interaction.response.defer()  #
+        await interaction.response.defer() 
         self.stop()
 
     async def no(self, interaction):
         self.value = "NO"
         await interaction.response.defer()  
         self.stop()
+
