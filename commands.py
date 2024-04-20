@@ -308,3 +308,16 @@ def setup(bot):
             await interaction.response.send_message(f"イベント:{event_name} がキャンセルされました。")
         except Exception as e:
             await interaction.response.send_message(f"エラーが発生しました: {e}")
+
+    ####################################################################################
+    ####################################################################################
+
+    @tree.command(name="eventlist", description="イベント一覧を表示します")
+    async def eventlist(interaction: discord.Interaction):
+        try:
+            event_list = ""
+            for event in interaction.guild.scheduled_events:
+                event_list += f"{event.name} @ {event.start_time}\n"
+            await interaction.response.send_message(event_list)
+        except Exception as e:
+            await interaction.response.send_message(f"エラーが発生しました: {e}")
