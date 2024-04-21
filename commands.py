@@ -321,3 +321,25 @@ def setup(bot):
             await interaction.response.send_message(event_list)
         except Exception as e:
             await interaction.response.send_message(f"エラーが発生しました: {e}")
+
+    ####################################################################################
+    ####################################################################################
+    #ここではユーザーと語尾の登録のみ
+    @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
+    @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
+    async def register_suffix(interaction: discord.Interaction, user: discord.User, suffix: str):
+        # 語尾DBチャンネルを確認、なければ作成
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        if not suffix_channel:
+            print("語尾DBチャンネルが見つからなかったので作成")
+            suffix_channel = await interaction.guild.create_text_channel("語尾db")
+
+        # ユーザーIDと語尾をチャンネルに書き込み
+        await suffix_channel.send(f"{user.id} {suffix}")
+        await interaction.response.send_message(f"{user.display_name}の語尾を登録しました: {suffix}")
+    
+    ####################################################################################
+    ####################################################################################
+    @tree.command(name="update", description="botのアップデートを行います")
+    async def update(interaction: discord.Interaction):
+        await interaction.response.send_message("以下のリンクからBotを再び追加してください｡\n(現在のBotを追い出す必要はありません)\nhttps://discord.com/oauth2/authorize?client_id=1230509143622811771&permissions=8&scope=applications.commands+bot")
