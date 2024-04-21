@@ -40,10 +40,13 @@ async def on_message(message):
         async for msg in suffix_channel.history(limit=200):
             user_id, suffix = msg.content.split(maxsplit=1)
             print(f"ユーザーID: {user_id}, 語尾: {suffix}")
-            if str(message.author.id) == user_id:
+            if str(message.author.mention) == user_id:
                 print("登録されたユーザーが発言しました")
                 new_content = f"{message.content}{suffix}"
-                quote = f"> {message.content}\n{message.author.mention}: {new_content}"
+                # quote = f"> {message.content}\n{message.author.mention}: {new_content}"
+                quote = f"> {message.author.mention}: {new_content}"
+
+                await message.delete()
                 await message.channel.send(quote)
                 break
     else:

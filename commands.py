@@ -335,7 +335,7 @@ def setup(bot):
             suffix_channel = await interaction.guild.create_text_channel("語尾db")
 
         # ユーザーIDと語尾をチャンネルに書き込み
-        await suffix_channel.send(f"{user.id} {suffix}")
+        await suffix_channel.send(f"{user.mention} {suffix}",silent=True)
         await interaction.response.send_message(f"{user.display_name}の語尾を登録しました: {suffix}")
     
     ####################################################################################
