@@ -335,7 +335,7 @@ def setup(bot):
             suffix_channel = await interaction.guild.create_text_channel("語尾db")
 
         # ユーザーIDと語尾をチャンネルに書き込み
-        await suffix_channel.send(f"{user.mention} {suffix}",silent=True)
+        await suffix_channel.send(f"{user.display_name} {suffix}",silent=True)
         await interaction.response.send_message(f"{user.display_name}の語尾を登録しました: {suffix}")
     
     ####################################################################################
@@ -343,3 +343,54 @@ def setup(bot):
     @tree.command(name="update", description="botのアップデートを行います")
     async def update(interaction: discord.Interaction):
         await interaction.response.send_message("以下のリンクからBotを再び追加してください｡\n(現在のBotを追い出す必要はありません)\nhttps://discord.com/oauth2/authorize?client_id=1230509143622811771&permissions=8&scope=applications.commands+bot")
+
+    ####################################################################################
+    ####################################################################################
+
+    @tree.command(name="gobidelete", description="ユーザーの語尾を削除します")
+    @app_commands.describe(user="語尾を削除するユーザー")
+    async def delete_suffix(interaction: discord.Interaction, user: discord.User):
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        if suffix_channel:
+            async for msg in suffix_channel.history(limit=200):
+                user_id, suffix = msg.content.split(maxsplit=1)
+                if str(user.display_name) == user_id:
+                    await msg.delete()
+                    await interaction.response.send_message(f"{user.display_name}の語尾を削除しました")
+                    break
+            else:
+                await interaction.response.send_message(f"{user.display_name}の語尾が見つかりませんでした")
+        else:
+            await interaction.response.send_message("語尾データなし")
+
+    ####################################################################################
+    ####################################################################################
+    # /romendを入力したら /rom から /romend までの間のメッセージを削除する
+    @tree.command(name="rom", description="聞き専モードを有効にします")
+    async def rom(interaction: discord.Interaction ):
+        # コマンドを送信したユーザーから"聞き専"ロールを削除
+        role = discord.utils.get(interaction.guild.roles, name="聞き専")
+        # 聞き専ロールがなかったら作成
+        if not role:
+            role = await interaction.guild.create_role(name="聞き専")
+        await interaction.user.remove_roles(role)
+        await interaction.user.add_roles(role)
+        await interaction.response.send_message(f"{interaction.user.display_name} が聞き専モードになりました")
+    
+    @tree.command(name="romend", description="聞き専モードを解除します")
+    async def romend(interaction: discord.Interaction):
+        if not discord.utils.get(interaction.user.roles, name="聞き専"):
+            await interaction.response.send_message("聞き専モードになっていません")
+            return
+        # f"{interaction.user.display_name} が聞き専モードになりました" というメッセージにたどり着くまでそのユーザーのメッセージを削除
+        async for msg in interaction.channel.history(limit=200):
+            if msg.author == interaction.user:
+                await msg.delete()
+            if msg.content == f"{interaction.user.display_name} が聞き専モードになりました":
+                await msg.delete()
+                break
+
+        await interaction.response.send_message(f"{interaction.user.display_name} が聞き専モードを解除しました")
+
+    ####################################################################################
+    ####################################################################################
