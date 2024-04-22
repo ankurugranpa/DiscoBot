@@ -398,12 +398,12 @@ def setup(bot):
                 messages.append(message)
             user_times = []
             for message in messages:
-                user, duration = parse_duration(message.content)
-                user_times.append((user, duration))
-            # 滞在時間でソート（降順）
+                user_mention, duration = parse_duration(message.content)
+                user = interaction.guild.get_member(int(user_mention.strip("<@!>")))
+                if user:  # ユーザーが見つかった場合
+                    user_times.append((user.display_name, duration))
             user_times.sort(key=lambda x: x[1], reverse=True)
 
-            # ランキングメッセージの作成
             ranking_messages = []
             for rank, (user, duration) in enumerate(user_times, start=1):
                 hours, minutes = divmod(duration, 60)
@@ -411,9 +411,8 @@ def setup(bot):
             embed = discord.Embed(title="VC滞在時間ランキング", color=0x00ff00)
             embed.add_field(name="ランキング", value="\n".join(ranking_messages))
             await interaction.response.send_message(embed=embed)
-            
         else:
-            await interaction.response.send_message("まだランキングが作成されていません")
+            await interaction.response.send_message("まだランキングが作成されていません")   
 
     def parse_duration(content):
         # "ユーザー名 の滞在時間: n時間n分" から必要な情報を抽出
