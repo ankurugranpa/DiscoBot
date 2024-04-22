@@ -67,15 +67,18 @@ async def get_suffix_channel(message):
         # チャンネルのメッセージを取得して語尾情報を検索
         async for msg in suffix_channel.history(limit=200):
             user_id, suffix = msg.content.split(maxsplit=1)
-            print(f"ユーザーID: {user_id}, 語尾: {suffix}")
             if str(message.author.display_name) == user_id:
                 print("登録されたユーザーが発言しました")
+                print(f"ユーザーID: {user_id}, 語尾: {suffix}")
+
                 new_content = f"{message.content}{suffix}"
                 # quote = f"> {message.content}\n{message.author.mention}: {new_content}"
-                quote = f"> {message.author.mention}: {new_content}"
+                emoji = discord.utils.get(message.guild.emojis, name=message.author.name)
+                quote = f"{emoji} {message.author.display_name} : {new_content}"
 
-                # await message.delete()
-                await message.reply(quote,silent=True)
+                # await message.reply(quote,silent=True)
+                await message.channel.send(quote,silent=True)
+                await message.delete()
                 break
     else:
         print("語尾データなし")

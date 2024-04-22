@@ -29,7 +29,8 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    print(f"{message.author.display_name}: {message.content}")
+    if message.author != bot.user:
+        print(f"{message.author.display_name}: {message.content}")
     if message.author.bot or message.content.startswith(bot.command_prefix):
         return
     await get_suffix_channel(message) # 語尾DBチャンネルを取得

@@ -5,6 +5,9 @@ from gtts import gTTS, lang
 import os
 import asyncio
 from datetime import datetime, timedelta
+import io
+import aiohttp
+from PIL import Image, ImageOps
 
 def setup(bot):
     tree = bot.tree
@@ -331,10 +334,42 @@ def setup(bot):
         if not suffix_channel:
             print("語尾DBチャンネルが見つからなかったので作成")
             suffix_channel = await interaction.guild.create_text_channel("語尾db")
+        emoji = discord.utils.get(interaction.guild.emojis, name=user.name)
+        if not emoji:
+            print(f"このユーザーの絵文字(:{user.name}:)を作成します")
+            await create_emoji(interaction, user)
+        else :
+            print(f"このユーザーの絵文字:({user.name}):はすでに登録されています")
+        
 
         # ユーザーIDと語尾をチャンネルに書き込み
         await suffix_channel.send(f"{user.display_name} {suffix}",silent=True)
         await interaction.response.send_message(f"{user.display_name}の語尾を登録しました: {suffix}")
+
+    async def create_emoji(interaction: discord.Interaction, member: discord.Member):
+        emoji_url = member.display_avatar.url
+        emoji_name = f"{member.name}"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(emoji_url) as resp:
+                if resp.status != 200:
+                    return
+                image_data = await resp.read()
+                image = Image.open(io.BytesIO(image_data))
+
+                # 画像をリサイズしてファイルサイズを確認
+                max_size = (128, 128)  # 絵文字の最大サイズは128x128ピクセル
+                image = ImageOps.contain(image, max_size)
+                with io.BytesIO() as image_binary:
+                    image.save(image_binary, format='PNG')
+                    image_binary.seek(0)
+                    image_bytes = image_binary.read()
+                    
+                    # ファイルサイズが256KB以下か確認
+                    if len(image_bytes) > 256 * 1024:
+                        print("画像ファイルが大きすぎます。")
+                        return
+                    await interaction.guild.create_custom_emoji(name=emoji_name, image=image_bytes)
+
 
 
     @tree.command(name="gobidelete", description="ユーザーの語尾を削除します")
@@ -353,7 +388,40 @@ def setup(bot):
         else:
             await interaction.response.send_message("語尾データなし")
 
+    @tree.command(name="gobiupdate", description="ユーザーの語尾を更新します")
+    @app_commands.describe(user="語尾を更新するユーザー", suffix="新しい語尾")
+    async def update_suffix(interaction: discord.Interaction, user: discord.User, suffix: str):
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        if suffix_channel:
+            async for msg in suffix_channel.history(limit=200):
+                user_id, _ = msg.content.split(maxsplit=1)
+                if str(user.display_name) == user_id:
+                    await msg.edit(content=f"{user.display_name} {suffix}")
+                    await interaction.response.send_message(f"{user.display_name}の語尾を更新しました: {suffix}")
+                    break
+            else:
+                await interaction.response.send_message(f"{user.display_name}の語尾が見つかりませんでした")
+        else:
+            await interaction.response.send_message("語尾データなし")
+
+    @tree.command(name="gobilist", description="語尾一覧を表示します")
+    async def list_suffix(interaction: discord.Interaction):
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        embed = discord.Embed(title="語尾一覧", color=0x00ff00)
+        messages = []
+        async for message in suffix_channel.history(limit=200):
+            messages.append(message)
+        if not messages:
+            await interaction.response.send_message("語尾データなし")
+            return
+        for message in messages:
+            user_id, suffix = message.content.split(maxsplit=1)
+            embed.add_field(name=user_id, value=suffix)
+        await interaction.response.send_message(embed=embed)
+
     
+
+
     ####################################################################################
     ####################################################################################
 
