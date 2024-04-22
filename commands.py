@@ -330,7 +330,11 @@ def setup(bot):
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
     async def register_suffix(interaction: discord.Interaction, user: discord.User, suffix: str):
         # 語尾DBチャンネルを確認、なければ作成
-        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        overwrites = {
+            interaction.guild.default_role: discord.PermissionOverwrite(send_messages=False),
+            interaction.guild.me: discord.PermissionOverwrite(send_messages=True)
+        }
+        suffix_channel = await interaction.guild.create_text_channel("語尾db", overwrites=overwrites)
         if not suffix_channel:
             print("語尾DBチャンネルが見つからなかったので作成")
             suffix_channel = await interaction.guild.create_text_channel("語尾db")
