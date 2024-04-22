@@ -9,8 +9,6 @@ from datetime import datetime, timedelta
 def setup(bot):
     tree = bot.tree
 
-    bot.remove_command("help")
-
     @tree.command(name="help", description="コマンド一覧を表示します")
     async def help(interaction: discord.Interaction):
         help_message = "```"
@@ -324,7 +322,7 @@ def setup(bot):
 
     ####################################################################################
     ####################################################################################
-    #ここではユーザーと語尾の登録のみ
+
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
     async def register_suffix(interaction: discord.Interaction, user: discord.User, suffix: str):
@@ -337,15 +335,7 @@ def setup(bot):
         # ユーザーIDと語尾をチャンネルに書き込み
         await suffix_channel.send(f"{user.display_name} {suffix}",silent=True)
         await interaction.response.send_message(f"{user.display_name}の語尾を登録しました: {suffix}")
-    
-    ####################################################################################
-    ####################################################################################
-    @tree.command(name="update", description="botのアップデートを行います")
-    async def update(interaction: discord.Interaction):
-        await interaction.response.send_message("以下のリンクからBotを再び追加してください｡\n(現在のBotを追い出す必要はありません)\nhttps://discord.com/oauth2/authorize?client_id=1230509143622811771&permissions=8&scope=applications.commands+bot")
 
-    ####################################################################################
-    ####################################################################################
 
     @tree.command(name="gobidelete", description="ユーザーの語尾を削除します")
     @app_commands.describe(user="語尾を削除するユーザー")
@@ -363,26 +353,30 @@ def setup(bot):
         else:
             await interaction.response.send_message("語尾データなし")
 
+    
     ####################################################################################
     ####################################################################################
-    # /romendを入力したら /rom から /romend までの間のメッセージを削除する
+
+    @tree.command(name="update", description="botのアップデートを行います")
+    async def update(interaction: discord.Interaction):
+        await interaction.response.send_message("以下のリンクからBotを再び追加してください｡\n(現在のBotを追い出す必要はありません)\nhttps://discord.com/oauth2/authorize?client_id=1230509143622811771&permissions=8&scope=applications.commands+bot")
+
+    ####################################################################################
+    ####################################################################################
     @tree.command(name="rom", description="聞き専モードを有効にします")
     async def rom(interaction: discord.Interaction ):
-        # コマンドを送信したユーザーから"聞き専"ロールを削除
         role = discord.utils.get(interaction.guild.roles, name="聞き専")
-        # 聞き専ロールがなかったら作成
         if not role:
             role = await interaction.guild.create_role(name="聞き専")
         await interaction.user.remove_roles(role)
         await interaction.user.add_roles(role)
         await interaction.response.send_message(f"{interaction.user.display_name} が聞き専モードになりました")
     
-    @tree.command(name="romend", description="聞き専モードを解除します")
+    @tree.command(name="romend", description="聞き専モードが有効になっていた間のメッセージをすべて削除します")
     async def romend(interaction: discord.Interaction):
         if not discord.utils.get(interaction.user.roles, name="聞き専"):
             await interaction.response.send_message("聞き専モードになっていません")
             return
-        # f"{interaction.user.display_name} が聞き専モードになりました" というメッセージにたどり着くまでそのユーザーのメッセージを削除
         async for msg in interaction.channel.history(limit=200):
             if msg.author == interaction.user:
                 await msg.delete()
@@ -394,3 +388,41 @@ def setup(bot):
 
     ####################################################################################
     ####################################################################################
+
+    @tree.command(name="ranking", description="VC滞在時間ランキングを表示します")
+    async def ranking(interaction: discord.Interaction):
+        ranking_channel = discord.utils.get(interaction.guild.text_channels, name="vc滞在時間ランキング")
+        if ranking_channel:
+            messages = []
+            async for message in ranking_channel.history(limit=200):
+                messages.append(message)
+            user_times = []
+            for message in messages:
+                user, duration = parse_duration(message.content)
+                user_times.append((user, duration))
+            # 滞在時間でソート（降順）
+            user_times.sort(key=lambda x: x[1], reverse=True)
+
+            # ランキングメッセージの作成
+            ranking_messages = []
+            for rank, (user, duration) in enumerate(user_times, start=1):
+                hours, minutes = divmod(duration, 60)
+                ranking_messages.append(f"{rank}位: {user} {hours}時間{minutes}分")
+            embed = discord.Embed(title="VC滞在時間ランキング", color=0x00ff00)
+            embed.add_field(name="ランキング", value="\n".join(ranking_messages))
+            await interaction.response.send_message(embed=embed)
+            
+        else:
+            await interaction.response.send_message("まだランキングが作成されていません")
+
+    def parse_duration(content):
+        # "ユーザー名 の滞在時間: n時間n分" から必要な情報を抽出
+        user_info, duration_str = content.split(" の滞在時間: ")
+        hours, minutes = 0, 0
+        if "時間" in duration_str:
+            hours, minutes = duration_str.split("時間")
+            minutes = minutes.replace("分", "")
+        else:
+            minutes = duration_str.replace("分", "")
+        total_minutes = int(hours) * 60 + int(minutes)
+        return user_info, total_minutes 
