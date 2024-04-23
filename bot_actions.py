@@ -61,6 +61,7 @@ def format_duration(minutes):
         return f"{remaining_minutes}分"
     
 async def get_suffix_channel(message):
+    
     suffix_channel = discord.utils.get(message.guild.text_channels, name="語尾db")
 
     if suffix_channel:

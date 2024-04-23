@@ -164,7 +164,7 @@ def setup(bot):
             message_id = int(message_id)
             message = await interaction.channel.fetch_message(message_id)
             await message.add_reaction(reaction)
-            
+
             await interaction.response.send_message(
                 f"{message.jump_url}\nに{reaction}をつけました"
             )
@@ -326,29 +326,38 @@ def setup(bot):
     ####################################################################################
     ####################################################################################
 
+
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
-    async def register_suffix(interaction: discord.Interaction, user: discord.User, suffix: str):
+    async def register_suffix(
+        interaction: discord.Interaction, user: discord.User, suffix: str
+    ):
         # 語尾DBチャンネルを確認、なければ作成
-        overwrites = {
-            interaction.guild.default_role: discord.PermissionOverwrite(send_messages=False),
-            interaction.guild.me: discord.PermissionOverwrite(send_messages=True)
-        }
-        suffix_channel = await interaction.guild.create_text_channel("語尾db", overwrites=overwrites)
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
         if not suffix_channel:
+            overwrites = {
+                interaction.guild.default_role: discord.PermissionOverwrite(
+                    send_messages=False
+                ),
+                interaction.guild.me: discord.PermissionOverwrite(send_messages=True),
+            }
+            suffix_channel = await interaction.guild.create_text_channel(
+                "語尾db", overwrites=overwrites
+            )
             print("語尾DBチャンネルが見つからなかったので作成")
-            suffix_channel = await interaction.guild.create_text_channel("語尾db")
+
         emoji = discord.utils.get(interaction.guild.emojis, name=user.name)
         if not emoji:
             print(f"このユーザーの絵文字(:{user.name}:)を作成します")
             await create_emoji(interaction, user)
-        else :
+        else:
             print(f"このユーザーの絵文字:({user.name}):はすでに登録されています")
-        
 
         # ユーザーIDと語尾をチャンネルに書き込み
-        await suffix_channel.send(f"{user.display_name} {suffix}",silent=True)
-        await interaction.response.send_message(f"{user.display_name}の語尾を登録しました: {suffix}")
+        await suffix_channel.send(f"{user.display_name} {suffix}", silent=True)
+        await interaction.response.send_message(
+            f"{user.display_name}の語尾を登録しました: {suffix}"
+        )
 
     async def create_emoji(interaction: discord.Interaction, member: discord.Member):
         emoji_url = member.display_avatar.url
@@ -367,14 +376,12 @@ def setup(bot):
                     image.save(image_binary, format='PNG')
                     image_binary.seek(0)
                     image_bytes = image_binary.read()
-                    
+
                     # ファイルサイズが256KB以下か確認
                     if len(image_bytes) > 256 * 1024:
                         print("画像ファイルが大きすぎます。")
                         return
                     await interaction.guild.create_custom_emoji(name=emoji_name, image=image_bytes)
-
-
 
     @tree.command(name="gobidelete", description="ユーザーの語尾を削除します")
     @app_commands.describe(user="語尾を削除するユーザー")
@@ -388,7 +395,9 @@ def setup(bot):
                     await interaction.response.send_message(f"{user.display_name}の語尾を削除しました")
                     break
             else:
-                await interaction.response.send_message(f"{user.display_name}の語尾が見つかりませんでした")
+                await interaction.response.send_message(
+                    f"{user.display_name}の語尾が見つかりませんでした"
+                )
         else:
             await interaction.response.send_message("語尾データなし")
 
@@ -404,7 +413,9 @@ def setup(bot):
                     await interaction.response.send_message(f"{user.display_name}の語尾を更新しました: {suffix}")
                     break
             else:
-                await interaction.response.send_message(f"{user.display_name}の語尾が見つかりませんでした")
+                await interaction.response.send_message(
+                    f"{user.display_name}の語尾が見つかりませんでした"
+                )
         else:
             await interaction.response.send_message("語尾データなし")
 
@@ -423,9 +434,6 @@ def setup(bot):
             embed.add_field(name=user_id, value=suffix)
         await interaction.response.send_message(embed=embed)
 
-    
-
-
     ####################################################################################
     ####################################################################################
 
@@ -443,7 +451,7 @@ def setup(bot):
         await interaction.user.remove_roles(role)
         await interaction.user.add_roles(role)
         await interaction.response.send_message(f"{interaction.user.display_name} が聞き専モードになりました")
-    
+
     @tree.command(name="romend", description="聞き専モードが有効になっていた間のメッセージをすべて削除します")
     async def romend(interaction: discord.Interaction):
         if not discord.utils.get(interaction.user.roles, name="聞き専"):
