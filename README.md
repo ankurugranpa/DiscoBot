@@ -27,3 +27,7 @@ Discord.py を使った DiscordBot
 `nodemon --exec python3 main.py`
 
 -> **_Happy_**
+
+### nodemon を落としたいとき
+
+`pkill -f nodemon`
