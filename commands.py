@@ -326,7 +326,6 @@ def setup(bot):
     ####################################################################################
     ####################################################################################
 
-
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
     async def register_suffix(
@@ -354,7 +353,7 @@ def setup(bot):
             print(f"このユーザーの絵文字:({user.name}):はすでに登録されています")
 
         # ユーザーIDと語尾をチャンネルに書き込み
-        await suffix_channel.send(f"{user.name} {suffix} {suffix_enabled_string(False)}",silent=True)
+        await suffix_channel.send(f"{user.name} {suffix} {suffix_enabled_string(True)}",silent=True)
         await interaction.response.send_message(
             f"{user.name} ({user.display_name}) の語尾を登録しました: {suffix}"
         )
