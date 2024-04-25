@@ -63,12 +63,14 @@ def format_duration(minutes):
 async def get_suffix_channel(message):
     
     suffix_channel = discord.utils.get(message.guild.text_channels, name="語尾db")
-
+    if message.channel.name == "語尾db":
+        return
     if suffix_channel:
-        # チャンネルのメッセージを取得して語尾情報を検索
         async for msg in suffix_channel.history(limit=200):
-            user_id, suffix = msg.content.split(maxsplit=1)
-            if str(message.author.display_name) == user_id:
+            # user.name (display.name) suffix の形式で保存されている
+            user_id, suffix = msg.content.split(" ")
+            print(f"ユーザーID: {user_id}, 語尾: {suffix}")
+            if str(message.author.name) == user_id:
                 print("登録されたユーザーが発言しました")
                 print(f"ユーザーID: {user_id}, 語尾: {suffix}")
 

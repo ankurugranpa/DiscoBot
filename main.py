@@ -29,9 +29,17 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    # 語尾dbに書き込んでたら削除
+    if message.channel.name == "語尾db" and message.author != bot.user:
+        await message.delete()
     if message.author != bot.user:
         print(f"{message.author.display_name}: {message.content}")
     if message.author.bot or message.content.startswith(bot.command_prefix):
+        return
+    # startswith https で始まるメッセージは無視
+    if message.content.startswith("https") or message.content.startswith("http") or message.content.startswith("www") :
+        return
+    if message.content.startswith("```"):
         return
     await get_suffix_channel(message) # 語尾DBチャンネルを取得
 
