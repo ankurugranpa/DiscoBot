@@ -61,28 +61,32 @@ def format_duration(minutes):
         return f"{remaining_minutes}分"
 
 async def replace_suffix(message):
-    suffix_channel = discord.utils.get(message.guild.text_channels, name="語尾db")
-    if message.channel.name == "語尾db":
-        return
-    if suffix_channel:
-        async for msg in suffix_channel.history(limit=200):
-            # user.name (display.name) suffix の形式で保存されている
-            user_id, suffix, is_enabled = msg.content.split(" ")
-            print(f"ユーザーID: {user_id}, 語尾: {suffix} 有効: {is_enabled}")
-            if is_enabled == suffix_enabled_string(False):
-                print("無効化されています")
-                continue
-            if str(message.author.name) == user_id:
-                print("登録されたユーザーが発言しました")
-                print(f"ユーザーID: {user_id}, 語尾: {suffix}")
-                new_content = f"{message.content}{suffix}"
-                # quote = f"> {message.content}\n{message.author.mention}: {new_content}"
-                emoji = discord.utils.get(message.guild.emojis, name=message.author.name)
-                quote = f"{emoji} {message.author.display_name} : {new_content}"
+    try:
+        suffix_channel = discord.utils.get(message.guild.text_channels, name="語尾db")
+        if message.channel.name == "語尾db":
+            return
+        if suffix_channel:
+            async for msg in suffix_channel.history(limit=200):
+                # user.name (display.name) suffix の形式で保存されている
+                user_id, suffix, is_enabled = msg.content.split(" ")
+                print(f"ユーザーID: {user_id}, 語尾: {suffix} 有効: {is_enabled}")
+                if is_enabled == suffix_enabled_string(False):
+                    print("無効化されています")
+                    continue
+                if str(message.author.name) == user_id:
+                    print("登録されたユーザーが発言しました")
+                    print(f"ユーザーID: {user_id}, 語尾: {suffix}")
+                    new_content = f"{message.content}{suffix}"
+                    # quote = f"> {message.content}\n{message.author.mention}: {new_content}"
+                    emoji = discord.utils.get(message.guild.emojis, name=message.author.name)
+                    quote = f"{emoji} {message.author.display_name} : {new_content}"
 
-                # await message.reply(quote,silent=True)
-                await message.channel.send(quote,silent=True)
-                await message.delete()
-                break
-    else:
-        print("語尾データなし")
+                    # await message.reply(quote,silent=True)
+                    await message.channel.send(quote,silent=True)
+                    await message.delete()
+                    break
+        else:
+            print("語尾データなし")
+    except Exception as e:
+        await message.channel.send("エラーが発生しました 語尾dbを消したりすると治るかも")
+        print(e)
