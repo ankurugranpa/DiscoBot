@@ -446,7 +446,9 @@ def setup(bot):
 
     @tree.command(name="update", description="botのアップデートを行います")
     async def update(interaction: discord.Interaction):
-        await interaction.response.send_message("以下のリンクからBotを再び追加してください｡\n(現在のBotを追い出す必要はありません)\nhttps://discord.com/oauth2/authorize?client_id=1230509143622811771&permissions=8&scope=applications.commands+bot")
+        await interaction.response.send_message(
+            "以下のリンクからBotを再び追加してください｡\n(現在のBotを追い出す必要はありません)\n[こちら](https://discord.com/oauth2/authorize?client_id=1233179658418131025&permissions=8&scope=bot)"
+        )
 
     ####################################################################################
     ####################################################################################
