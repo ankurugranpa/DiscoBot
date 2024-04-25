@@ -389,7 +389,7 @@ def setup(bot):
         suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
         if suffix_channel:
             async for msg in suffix_channel.history(limit=200):
-                user_name, suffix, enabled = msg.content.split(maxsplit=1)
+                user_name, suffix= msg.content.split(maxsplit=1)
                 if str(user.name) == user_name:
                     await msg.delete()
                     await interaction.response.send_message(f"{user.name}({user.display_name})の語尾を削除しました")

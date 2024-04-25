@@ -69,12 +69,12 @@ async def replace_suffix(message):
             # user.name (display.name) suffix の形式で保存されている
             user_id, suffix, is_enabled = msg.content.split(" ")
             print(f"ユーザーID: {user_id}, 語尾: {suffix} 有効: {is_enabled}")
-            if is_enabled == suffix_enabled_string[False]:
+            if is_enabled == suffix_enabled_string(False):
+                print("無効化されています")
                 continue
             if str(message.author.name) == user_id:
                 print("登録されたユーザーが発言しました")
                 print(f"ユーザーID: {user_id}, 語尾: {suffix}")
-
                 new_content = f"{message.content}{suffix}"
                 # quote = f"> {message.content}\n{message.author.mention}: {new_content}"
                 emoji = discord.utils.get(message.guild.emojis, name=message.author.name)
