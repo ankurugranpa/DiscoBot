@@ -3,8 +3,6 @@ from discord import app_commands
 from discord.ext import commands
 from gtts import gTTS, lang
 import os
-from dataclasses import dataclass
-from typing import Literal
 import asyncio
 from datetime import datetime, timedelta
 import io
@@ -328,8 +326,6 @@ def setup(bot):
     ####################################################################################
     ####################################################################################
 
-    def suffix_enabled_string(is_enabled: bool):
-        return "有効" if is_enabled else "無効"
 
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
@@ -553,3 +549,9 @@ def setup(bot):
             minutes = duration_str.replace("分", "")
         total_minutes = int(hours) * 60 + int(minutes)
         return user_info, total_minutes
+
+####################################################################################
+####################################################################################
+
+def suffix_enabled_string(is_enabled: bool):
+    return "有効" if is_enabled else "無効"
