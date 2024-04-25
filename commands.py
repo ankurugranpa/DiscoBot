@@ -180,11 +180,11 @@ def setup(bot):
         try:
             if num < 2 or num >= 10:
                 await interaction.response.send_message("選択肢は2〜10個までです😡", ephemeral=True)
-                return  
-            await interaction.response.defer()  
+                return
+            await interaction.response.defer()
             message = await interaction.followup.send("以下にリアクションをクリックして投票してください:")
             for i in range(1, num + 1):
-                await message.add_reaction(f"{i}\u20e3")    
+                await message.add_reaction(f"{i}\u20e3")
         except Exception as e:
             await interaction.response.send_message(f"エラーが発生しました: {e}")
 
@@ -326,6 +326,7 @@ def setup(bot):
     ####################################################################################
     ####################################################################################
 
+
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
     async def register_suffix(
@@ -353,7 +354,7 @@ def setup(bot):
             print(f"このユーザーの絵文字:({user.name}):はすでに登録されています")
 
         # ユーザーIDと語尾をチャンネルに書き込み
-        await suffix_channel.send(f"{user.name} {suffix}",silent=True)
+        await suffix_channel.send(f"{user.name} {suffix} {suffix_enabled_string(False)}",silent=True)
         await interaction.response.send_message(
             f"{user.name} ({user.display_name}) の語尾を登録しました: {suffix}"
         )
@@ -388,7 +389,7 @@ def setup(bot):
         suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
         if suffix_channel:
             async for msg in suffix_channel.history(limit=200):
-                user_name, suffix = msg.content.split(maxsplit=1)
+                user_name, suffix= msg.content.split(maxsplit=1)
                 if str(user.name) == user_name:
                     await msg.delete()
                     await interaction.response.send_message(f"{user.name}({user.display_name})の語尾を削除しました")
@@ -440,6 +441,42 @@ def setup(bot):
                 suffix_list.append(f"{user_id}: {suffix}")
         embed.description = "\n".join(suffix_list)
         await interaction.response.send_message(embed=embed)
+
+    @tree.command(name="gobienable", description="ユーザーの語尾を有効にします")
+    @app_commands.describe(user="語尾を有効にするユーザー")
+    async def enable_suffix(interaction: discord.Interaction, user: discord.User):
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        if suffix_channel:
+            async for msg in suffix_channel.history(limit=200):
+                user_name, suffix, is_enabled = msg.content.split(maxsplit=2)
+                if str(user.name) == user_name:
+                    await msg.edit(content=f"{user.name} {suffix} {suffix_enabled_string(True)}")
+                    await interaction.response.send_message(f"{user.name}({user.display_name})の語尾を有効にしました")
+                    break
+            else:
+                await interaction.response.send_message(
+                    f"{user.name}({user.display_name})の語尾が見つかりませんでした"
+                )
+        else:
+            await interaction.response.send_message("語尾データなし")
+
+    @tree.command(name="gobidisable", description="ユーザーの語尾を無効にします")
+    @app_commands.describe(user="語尾を無効にするユーザー")
+    async def disable_suffix(interaction: discord.Interaction, user: discord.User):
+        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
+        if suffix_channel:
+            async for msg in suffix_channel.history(limit=200):
+                user_name, suffix, is_enabled = msg.content.split(maxsplit=2)
+                if str(user.name) == user_name:
+                    await msg.edit(content=f"{user.name} {suffix} {suffix_enabled_string(False)}")
+                    await interaction.response.send_message(f"{user.name}({user.display_name})の語尾を無効にしました")
+                    break
+            else:
+                await interaction.response.send_message(
+                    f"{user.name}({user.display_name})の語尾が見つかりませんでした"
+                )
+        else:
+            await interaction.response.send_message("語尾データなし")
 
     ####################################################################################
     ####################################################################################
@@ -499,7 +536,7 @@ def setup(bot):
             embed.add_field(name="ランキング", value="\n".join(ranking_messages))
             await interaction.response.send_message(embed=embed)
         else:
-            await interaction.response.send_message("まだランキングが作成されていません")   
+            await interaction.response.send_message("まだランキングが作成されていません")
 
     def parse_duration(content):
         # "ユーザー名 の滞在時間: n時間n分" から必要な情報を抽出
@@ -511,4 +548,10 @@ def setup(bot):
         else:
             minutes = duration_str.replace("分", "")
         total_minutes = int(hours) * 60 + int(minutes)
-        return user_info, total_minutes 
+        return user_info, total_minutes
+
+####################################################################################
+####################################################################################
+
+def suffix_enabled_string(is_enabled: bool):
+    return "有効" if is_enabled else "無効"

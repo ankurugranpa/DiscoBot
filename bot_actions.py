@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 intents = discord.Intents.all()
+from commands import suffix_enabled_string
 bot = commands.Bot(command_prefix="/", intents=intents, case_insensitive=True)
 
 # ユーザーの滞在時間を記録するための辞書
@@ -58,21 +59,22 @@ def format_duration(minutes):
         return f"{hours}時間{remaining_minutes}分"
     else:
         return f"{remaining_minutes}分"
-    
-async def get_suffix_channel(message):
-    
+
+async def replace_suffix(message):
     suffix_channel = discord.utils.get(message.guild.text_channels, name="語尾db")
     if message.channel.name == "語尾db":
         return
     if suffix_channel:
         async for msg in suffix_channel.history(limit=200):
             # user.name (display.name) suffix の形式で保存されている
-            user_id, suffix = msg.content.split(" ")
-            print(f"ユーザーID: {user_id}, 語尾: {suffix}")
+            user_id, suffix, is_enabled = msg.content.split(" ")
+            print(f"ユーザーID: {user_id}, 語尾: {suffix} 有効: {is_enabled}")
+            if is_enabled == suffix_enabled_string(False):
+                print("無効化されています")
+                continue
             if str(message.author.name) == user_id:
                 print("登録されたユーザーが発言しました")
                 print(f"ユーザーID: {user_id}, 語尾: {suffix}")
-
                 new_content = f"{message.content}{suffix}"
                 # quote = f"> {message.content}\n{message.author.mention}: {new_content}"
                 emoji = discord.utils.get(message.guild.emojis, name=message.author.name)
