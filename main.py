@@ -30,7 +30,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     # 語尾dbに書き込んでたら削除
-    if message.channel.name == "語尾db":
+    if message.channel.name == "語尾db" and message.author != bot.user:
         await message.delete()
     if message.author != bot.user:
         print(f"{message.author.display_name}: {message.content}")
@@ -49,5 +49,4 @@ async def on_message(message):
 @bot.event 
 async def on_voice_state_update(member, before, after):
     await record_time(member, before, after)
-
 bot.run(TOKEN)
