@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
-from datetime import datetime, timedelta
-
+from datetime import datetime
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="/", intents=intents, case_insensitive=True)
 

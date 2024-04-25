@@ -266,7 +266,7 @@ def setup(bot):
             # ユーザーがVCに存在していたらそのVCのIDを取得
             if interaction.user.voice:
                 channel_id = interaction.user.voice.channel.id
-            elif channel_name == None:
+            elif channel_name is None:
                 await interaction.response.send_message("VCに参加するか､VC名を指定してください")
                 return
             else:
@@ -325,7 +325,6 @@ def setup(bot):
 
     ####################################################################################
     ####################################################################################
-
 
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
@@ -421,17 +420,25 @@ def setup(bot):
 
     @tree.command(name="gobilist", description="語尾一覧を表示します")
     async def list_suffix(interaction: discord.Interaction):
-        suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
-        embed = discord.Embed(title="語尾一覧", color=0x00ff00)
+        suffix_channel = discord.utils.get(
+            interaction.guild.text_channels, name="語尾db"
+        )
+        embed = discord.Embed(title="語尾一覧", color=0x00FF00)
         messages = []
         async for message in suffix_channel.history(limit=200):
             messages.append(message)
         if not messages:
             await interaction.response.send_message("語尾データなし")
             return
+        suffix_list = []
         for message in messages:
             user_id, suffix = message.content.split(maxsplit=1)
-            embed.add_field(name=user_id, value=suffix)
+            user = discord.utils.get(interaction.guild.members, name=user_id)
+            if user:
+                suffix_list.append(f"{user.display_name}: {suffix}")
+            else:
+                suffix_list.append(f"{user_id}: {suffix}")
+        embed.description = "\n".join(suffix_list)
         await interaction.response.send_message(embed=embed)
 
     ####################################################################################

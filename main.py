@@ -30,7 +30,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     # 語尾dbに書き込んでたら削除
-    if message.channel.name == "語尾db" and message.author != bot.user:
+    if message.channel.name == "語尾db":
         await message.delete()
     if message.author != bot.user:
         print(f"{message.author.display_name}: {message.content}")
