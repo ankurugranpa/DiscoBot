@@ -406,9 +406,9 @@ def setup(bot):
         suffix_channel = discord.utils.get(interaction.guild.text_channels, name="語尾db")
         if suffix_channel:
             async for msg in suffix_channel.history(limit=200):
-                user_name, _ = msg.content.split(maxsplit=1)
+                user_name, _, enabled = msg.content.split(maxsplit=1)
                 if str(user.name) == user_name:
-                    await msg.edit(content=f"{user.name} {suffix}")
+                    await msg.edit(content=f"{user.name} {suffix} {enabled}")
                     await interaction.response.send_message(f"{user.name}({user.display_name})の語尾を更新しました: {suffix}")
                     break
             else:
