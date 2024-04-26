@@ -2,8 +2,9 @@ import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
-from typing import Mapping, Optional
-from bot_actions import *
+from bot_actions import replace_suffix, record_time
+from commands import setup
+
 
 load_dotenv()
 
@@ -16,7 +17,6 @@ intents.guilds = True
 
 bot = commands.Bot(command_prefix="/", intents=intents, case_insensitive=True)
 
-from commands import setup
 
 setup(bot)
 
@@ -37,9 +37,9 @@ async def on_message(message):
     if message.author.bot or message.content.startswith(bot.command_prefix):
         return
     # startswith https で始まるメッセージは無視
-    if message.content.startswith("https") or message.content.startswith("http") or message.content.startswith("www") :
-        return
-    if message.content.startswith("```"):
+    if any(
+        message.content.startswith(prefix) for prefix in ("https", "http", "www", "!", "```", "！")
+    ):
         return
     await replace_suffix(message) # 語尾DBチャンネルを取得
 
