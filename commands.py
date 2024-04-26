@@ -325,6 +325,7 @@ def setup(bot):
     ####################################################################################
     ####################################################################################
 
+
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
     async def register_suffix(
@@ -344,6 +345,18 @@ def setup(bot):
             )
             print("語尾DBチャンネルが見つからなかったので作成")
 
+        # 既存の語尾データを検索し、更新が必要か判断
+        async for msg in suffix_channel.history(limit=200):
+            user_name, _ = msg.content.split(maxsplit=1)
+            if str(user.name) == user_name:
+                await msg.edit(
+                    content=f"{user.name} {suffix} {suffix_enabled_string(True)}"
+                )
+                await interaction.response.send_message(
+                    f"{user.name}({user.display_name})の語尾を更新しました: {suffix}"
+                )
+                return
+
         emoji = discord.utils.get(interaction.guild.emojis, name=user.name)
         if not emoji:
             print(f"このユーザーの絵文字(:{user.name}:)を作成します")
@@ -351,8 +364,9 @@ def setup(bot):
         else:
             print(f"このユーザーの絵文字:({user.name}):はすでに登録されています")
 
-        # ユーザーIDと語尾をチャンネルに書き込み
-        await suffix_channel.send(f"{user.name} {suffix} {suffix_enabled_string(True)}",silent=True)
+        await suffix_channel.send(
+            f"{user.name} {suffix} {suffix_enabled_string(True)}", silent=True
+        )
         await interaction.response.send_message(
             f"{user.name} ({user.display_name}) の語尾を登録しました: {suffix}"
         )
@@ -549,6 +563,7 @@ def setup(bot):
             minutes = duration_str.replace("分", "")
         total_minutes = int(hours) * 60 + int(minutes)
         return user_info, total_minutes
+
 
 ####################################################################################
 ####################################################################################
