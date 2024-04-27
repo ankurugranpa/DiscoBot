@@ -3,7 +3,8 @@ from discord import app_commands
 from gtts import gTTS, lang
 import os
 import asyncio
-from datetime import datetime, timedelta
+import datetime
+from datetime import timedelta
 import io
 import aiohttp
 from PIL import Image, ImageOps
@@ -311,6 +312,47 @@ def setup(bot):
 
     ####################################################################################
     ####################################################################################
+    @tree.command(
+        name="getlog",
+        description="指定したチャンネルのメッセージログを取得し、txtファイルで送信します",
+    )
+    @app_commands.describe(channel_name="ログを取得するチャンネル名")
+    async def getlog(
+        interaction: discord.Interaction, channel_name: str, limit: int = 200
+    ):
+        start_time = datetime.datetime.now()  # 処理開始時間を記録
+
+        try:
+            await interaction.response.defer()  # 応答を遅延させる
+
+            channel = discord.utils.get(
+                interaction.guild.text_channels, name=channel_name
+            )
+            if channel is None:
+                await interaction.followup.send(
+                    "指定されたチャンネルが見つかりませんでした。"
+                )
+                return
+
+            message_count = 0  # メッセージの数をカウントする変数を初期化
+            with open("log.txt", "w") as file:
+                async for message in channel.history(limit=limit):
+                    file.write(f"{message.author.display_name}: {message.content}\n")
+                    message_count += 1  # メッセージを1つ取得するごとにカウントを増やす
+
+            end_time = datetime.datetime.now()  # 処理終了時間を記録
+            duration = (end_time - start_time).total_seconds()  # 処理時間を秒単位で計算
+
+            await interaction.followup.send(
+                f"{message_count}個のメッセージを保存しました。処理時間: {duration}秒",
+                file=discord.File("log.txt"),
+            )
+            os.remove("log.txt")
+        except Exception as e:
+            await interaction.followup.send(f"エラーが発生しました: {e}")
+
+    ####################################################################################
+    ####################################################################################
 
     @tree.command(name="eventlist", description="イベント一覧を表示します")
     async def eventlist(interaction: discord.Interaction):
@@ -324,7 +366,6 @@ def setup(bot):
 
     ####################################################################################
     ####################################################################################
-
 
     @tree.command(name="gobireg", description="ユーザーの語尾を登録します")
     @app_commands.describe(user="語尾を変更するユーザー", suffix="設定する語尾")
